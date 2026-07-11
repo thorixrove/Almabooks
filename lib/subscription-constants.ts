@@ -13,6 +13,8 @@ export interface PlanLimits {
     hasSessionHistory: boolean
 }
 
+
+// Pengaturan Plan untuk Billing FREE, STANDARS, PRO
 export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     [PLANS.FREE]: {
         maxBooks: 1,

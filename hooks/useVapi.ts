@@ -85,7 +85,7 @@ export function useVapi(book: IBook) {
                             setLimitError(
                                 `Sesi limit waktu (${Math.floor(
                                     maxDurationRef.current / SECONDS_PER_MINUTE,
-                                )} menit) dicapai. Upgrade rencanamu untuk sesi yang lebih panjang.`,
+                                )} menit) dicapai. Upgrade plan mu untuk sesi yang lebih panjang.`,
                             )
                         }
                     }
@@ -245,7 +245,7 @@ export function useVapi(book: IBook) {
             const result = await startVoiceSession(userId, book._id);
 
             if (!result.success) {
-                setLimitError(result.error || 'Sesi limit telah mencapai batas. Mohon upgrade rencanamu');
+                setLimitError(result.error || 'Sesi limit telah mencapai batas. Mohon upgrade plan mu');
                 setIsBillingError(!!result.isBillingError);
                 setStatus('idle');
                 return;
