@@ -1,24 +1,24 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { checkBookExists, createBook, saveBookSegments } from '@/lib/actions/book.actions';
-import { ACCEPTED_IMAGE_TYPES, ACCEPTED_PDF_INPUT_TYPES } from '@/lib/constants';
-import { parsePDFFile } from '@/lib/utils';
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Upload, ImageIcon } from 'lucide-react';
 import { UploadSchema } from '@/lib/zod';
 import { BookUploadFormValues } from '@/types';
-import { useAuth } from '@clerk/nextjs';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { upload } from "@vercel/blob/client";
-import { ImageIcon, Upload } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from "sonner";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { ACCEPTED_PDF_TYPES, ACCEPTED_IMAGE_TYPES, } from '@/lib/constants';
 import FileUploader from './FileUploader';
-import LoadingOverlay from './LoadingOverlay';
 import VoiceSelector from './VoiceSelector';
+import LoadingOverlay from './LoadingOverlay';
+import { useAuth } from '@clerk/nextjs';
+import { toast } from "sonner"
+import { checkBookExists, createBook, saveBookSegments } from '@/lib/actions/book.actions';
+import { useRouter } from 'next/navigation';
+import { parsePDFFile } from '@/lib/utils';
+import {upload} from "@vercel/blob/client"
 
 const UploadForm = () => {
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -160,7 +160,7 @@ const UploadForm = () => {
                             control={form.control}
                             name="pdfFile"
                             label="File PDF Buku"
-                            acceptTypes={ACCEPTED_PDF_INPUT_TYPES}
+                            acceptTypes={ACCEPTED_PDF_TYPES}
                             icon={Upload}
                             placeholder="Click to upload PDF"
                             hint="PDF file (max 50MB)"

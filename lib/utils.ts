@@ -96,7 +96,7 @@ export async function parsePDFFile(file: File) {
 
     if (typeof window !== 'undefined') {
       pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-          'pdfjs-dist/build/pdf.worker.min.js',
+          'pdfjs-dist/build/pdf.worker.min.mjs',
           import.meta.url,
       ).toString();
     }
