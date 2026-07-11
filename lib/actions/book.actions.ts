@@ -13,12 +13,24 @@ export const getAllBooks = async (search?: string) => {
     try {
         await connectToDatabase()
 
-        let query = {}
+        const { auth } = await import("@clerk/nextjs/server")
+        const { userId } = await auth()
+
+        // Jika user belum login, jangan tampilkan buku siapapun
+        if (!userId) {
+            return {
+                success: true,
+                data: []
+            }
+        }
+
+        let query: Record<string, unknown> = { clerkId: userId }
 
         if (search) {
             const escapedSearch = escapeRegex(search)
             const regex = new RegExp(escapedSearch, "i")
             query = {
+                clerkId: userId,
                 $or: [
                     { title: { $regex: regex}},
                     { author: { $regex: regex}},
@@ -182,7 +194,7 @@ export const saveBookSegments = async (bookId: string, clerkId: string, segment:
 }
 
 
-// Mencari segmentasi buku menggunnakan MongoDB pencarian text regex fallback
+// Mencari segmentasi buku menggunnakan MongoDB pencarian text rgex fallback
 export const searchBookSegments = async (bookId: string, query: string, limit: number = 5) => {
     try {
         await connectToDatabase()
@@ -236,6 +248,62 @@ export const searchBookSegments = async (bookId: string, query: string, limit: n
             success: false,
             error: (error as Error).message,
             data: [],
+        }
+    }
+}
+
+
+export const deleteBook = async (bookId: string) => {
+    try {
+        await connectToDatabase()
+
+        const { auth } = await import("@clerk/nextjs/server")
+        const { userId } = await auth()
+
+        if (!userId) {
+            return { success: false, error: "Mohon login untuk menghapus buku" }
+        }
+
+        const book = await Book.findById(bookId).lean() as { clerkId?: string; fileBlobKey?: string; title?: string } | null
+
+        if (!book) {
+            return { success: false, error: "Buku tidak ditemukan" }
+        }
+
+        // Pastikan hanya pemilik buku yang bisa menghapus
+        if (book.clerkId !== userId) {
+            return { success: false, error: "Kamu tidak memiliki akses untuk menghapus buku ini" }
+        }
+
+        // Hapus semua segmentasi teks buku ini
+        await BookSegment.deleteMany({ bookId })
+
+        // Hapus file PDF & cover dari Vercel Blob storage
+        try {
+            const { del } = await import("@vercel/blob")
+            if (book.fileBlobKey) {
+                await del(book.fileBlobKey)
+            }
+        } catch (blobError) {
+            // Jangan gagalkan proses delete cuma karena file blob gagal dihapus
+            console.error("Gagal menghapus file dari Blob storage:", blobError)
+        }
+
+        // Hapus dokumen buku dari database
+        await Book.findByIdAndDelete(bookId)
+
+        const { revalidatePath } = await import('next/cache')
+        revalidatePath("/")
+
+        return {
+            success: true,
+            data: { title: book.title },
+        }
+    } catch (error) {
+        console.error("Gagal menghapus buku", error)
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Gagal menghapus buku",
         }
     }
 }
