@@ -182,7 +182,7 @@ export const saveBookSegments = async (bookId: string, clerkId: string, segment:
 }
 
 
-// Mencari segmentasi buku menggunnakan MongoDB pencarian text rgex fallback
+// Mencari segmentasi buku menggunnakan MongoDB pencarian text regex fallback
 export const searchBookSegments = async (bookId: string, query: string, limit: number = 5) => {
     try {
         await connectToDatabase()
