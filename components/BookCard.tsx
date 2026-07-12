@@ -3,10 +3,10 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState, useTransition } from 'react'
+import { createPortal } from 'react-dom'
 import { Trash2 } from 'lucide-react'
 import { deleteBook } from '@/lib/actions/book.actions'
 import { toast } from 'sonner'
-import { createPortal } from 'react-dom'
 
 interface BookCardProps {
     _id: string
@@ -17,7 +17,7 @@ interface BookCardProps {
     onDeleted?: (id: string) => void
 }
 
-const BookCard = ({ _id, title, author, coverURL, slug, onDeleted}: BookCardProps) => {
+const BookCard = ({ _id, title, author, coverURL, slug, onDeleted }: BookCardProps) => {
     const [showConfirm, setShowConfirm] = useState(false)
     const [isPending, startTransition] = useTransition()
 
@@ -29,22 +29,22 @@ const BookCard = ({ _id, title, author, coverURL, slug, onDeleted}: BookCardProp
                 toast.success(`"${title}" berhasil dihapus`)
                 setShowConfirm(false)
                 onDeleted?.(_id)
-            }else{
-                toast.error(result.error || "Gagal menghapus buku")
+            } else {
+                toast.error(result.error || 'Gagal menghapus buku')
             }
         })
     }
 
-
-
     return (
         <div className="book-card group relative">
+            {/* Tombol delete: selalu terlihat di mobile (tidak ada hover di touch device),
+                sedikit transparan di desktop lalu jadi solid saat card di-hover */}
             <button
                 onClick={(e) => {
                     e.preventDefault()
                     setShowConfirm(true)
                 }}
-                className="absolute top-2 right-2 z-10 rounded-full bg-white/90 p-2 opacity-0 shadow-sm transition-opacity group-hover:opacity-100 hover:bg-red-50"
+                className="absolute top-2 right-2 z-10 rounded-full bg-white/90 p-2 opacity-70 shadow-sm transition-opacity hover:bg-red-50 md:opacity-0 md:group-hover:opacity-100"
                 aria-label={`Hapus buku ${title}`}
             >
                 <Trash2 className="size-4 text-red-600" />
