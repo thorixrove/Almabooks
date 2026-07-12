@@ -110,7 +110,22 @@ export async function parsePDFFile(file: File) {
 
     // Render first page as cover image
     const firstPage = await pdfDocument.getPage(1);
-    const viewport = firstPage.getViewport({ scale: 2 }); // 2x scale for better quality
+
+    // Batasi ukuran canvas agar tidak melebihi limit browser mobile (terutama iOS Safari,
+    // yang membatasi luas canvas maksimal ~16.7 juta piksel / 4096x4096)
+    const MAX_CANVAS_AREA = 16_000_000; // sedikit di bawah limit iOS untuk jaga-jaga
+    const baseViewport = firstPage.getViewport({ scale: 1 });
+    const baseArea = baseViewport.width * baseViewport.height;
+
+    // Mulai dari scale 2x (kualitas lebih baik), turunkan otomatis kalau area-nya kelewat besar
+    let scale = 2;
+    if (baseArea * scale * scale > MAX_CANVAS_AREA) {
+        scale = Math.sqrt(MAX_CANVAS_AREA / baseArea);
+        // Jangan sampai scale terlalu kecil, minimal 1x biar kualitas tetap layak
+        scale = Math.max(scale, 1);
+    }
+
+    const viewport = firstPage.getViewport({ scale });
 
     const canvas = document.createElement('canvas');
     canvas.width = viewport.width;
