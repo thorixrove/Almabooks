@@ -125,6 +125,9 @@ export const createBook = async (data: CreateBook) => {
 
         const book = await Book.create({...data, clerkId: userId, slug, totalSegments: 0})
 
+        const { revalidatePath } = await import('next/cache')
+        revalidatePath("/")
+
         return {
             success: true,
             data: serializeData(book),
@@ -178,6 +181,9 @@ export const saveBookSegments = async (bookId: string, clerkId: string, segment:
         await Book.findByIdAndUpdate(bookId, { totalSegments: segment.length})
 
         console.log("Segmentasi buku berhasil disimpan.")
+
+        const { revalidatePath } = await import('next/cache')
+        revalidatePath("/")
 
         return{
             success: true,
