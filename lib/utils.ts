@@ -90,7 +90,7 @@ export const formatDuration = (seconds: number): string => {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 };
 
-export async function parsePDFFile(file: File) {
+async function parsePDFFileInternal(file: File) {
   try {
     const pdfjsLib = await import('pdfjs-dist');
 
@@ -172,4 +172,22 @@ export async function parsePDFFile(file: File) {
     console.error('Error parsing PDF:', error);
     throw new Error(`Failed to parse PDF file: ${error instanceof Error ? error.message : String(error)}`);
   }
+}
+
+// Bungkus dengan timeout supaya proses tidak macet selamanya kalau browser
+// (biasanya browser HP lama) gagal diam-diam menjalankan worker pdf.js
+export async function parsePDFFile(file: File) {
+  const TIMEOUT_MS = 45_000 // 45 detik
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => {
+      reject(
+        new Error(
+          'Proses membaca PDF memakan waktu terlalu lama (timeout). Browser kamu mungkin tidak mendukung fitur yang dibutuhkan. Coba gunakan browser lain (Chrome versi terbaru) atau perangkat lain.',
+        ),
+      )
+    }, TIMEOUT_MS)
+  })
+
+  return Promise.race([parsePDFFileInternal(file), timeoutPromise])
 }
