@@ -23,6 +23,7 @@ import {upload} from "@vercel/blob/client"
 const UploadForm = () => {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isMounted, setIsMounted]= useState(false)
+    const [debugError, setDebugError] = useState<string | null>(null)
     const {userId} = useAuth()
     const router = useRouter()
 
@@ -47,6 +48,7 @@ const UploadForm = () => {
         }
 
         setIsSubmitting(true)
+        setDebugError(null)
 
         // PostHog -> melacak penguploadan buku
 
@@ -139,6 +141,12 @@ const UploadForm = () => {
         } catch (error) {
             console.error(error)
 
+            // Tampilkan detail error di layar untuk debugging (khususnya di HP tanpa akses devtools)
+            const fullMessage = error instanceof Error
+                ? `${error.name}: ${error.message}\n\n${error.stack || ''}`
+                : String(error)
+            setDebugError(fullMessage)
+
             toast.error("Gagal mengupload buku. Mohon coba lagi.")
         } finally {
             setIsSubmitting(false)
@@ -151,6 +159,26 @@ const UploadForm = () => {
     return (
         <>
             {isSubmitting && <LoadingOverlay />}
+
+            {debugError && (
+                <div className="mx-auto mb-4 max-w-2xl rounded-lg border border-red-300 bg-red-50 p-4">
+                    <div className="mb-2 flex items-center justify-between">
+                        <p className="text-sm font-bold text-red-700">Debug Error (sementara)</p>
+                        <button
+                            onClick={() => setDebugError(null)}
+                            className="text-xs text-red-500 underline"
+                        >
+                            Tutup
+                        </button>
+                    </div>
+                    <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words text-xs text-red-800">
+                        {debugError}
+                    </pre>
+                    <p className="mt-2 text-xs text-red-500">
+                        Screenshot kotak ini dan kirim ke developer untuk membantu memperbaiki masalah.
+                    </p>
+                </div>
+            )}
 
             <div className="new-book-wrapper">
                 <Form {...form}>
